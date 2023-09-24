@@ -20,3 +20,13 @@ output "cluster_name" {
   description = "Kubernetes Cluster Name"
   value       = module.eks.cluster_name
 }
+
+output "postgres_endpoint" {
+  description = "Endpoint for the PostgreSQL instance"
+  value       = aws_db_instance.postgres.endpoint
+}
+
+output "postgres_port" {
+  description = "DB port"
+  value       = aws_db_instance.postgres.port
+}

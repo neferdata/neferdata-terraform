@@ -48,6 +48,10 @@ module "vpc" {
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
     "kubernetes.io/role/internal-elb"             = 1
   }
+
+  tags = {
+    Name = "Neferdata"
+  }
 }
 
 module "eks" {
@@ -87,6 +91,10 @@ module "eks" {
       desired_size = 1
     }
   }
+
+  tags = {
+    Name = "Neferdata"
+  }
 }
 
 
@@ -114,5 +122,43 @@ resource "aws_eks_addon" "ebs-csi" {
   tags = {
     "eks_addon" = "ebs-csi"
     "terraform" = "true"
+  }
+}
+
+resource "aws_security_group" "postgres_sg" {
+  name        = "my-postgres-sg"
+  description = "Allow PostgreSQL traffic"
+  vpc_id                         = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # WARNING: This allows all IP addresses. Adjust accordingly.
+  }
+
+  tags = {
+    Name = "Neferdata"
+  }
+}
+
+resource "aws_db_instance" "postgres" {
+  allocated_storage    = 20  # Adjust as needed
+  storage_type         = "gp2"
+  engine               = "postgres"
+  engine_version       = "13.3"  # Adjust as per your desired PostgreSQL version
+  instance_class       = "db.t2.micro"  # Adjust as needed
+  name                 = "neferdata-api-db"
+  username = var.db_username
+  password = var.db_password
+  parameter_group_name = "default.postgres13"  # Based on engine_version
+  skip_final_snapshot  = false  # Set this to `false` for production databases to ensure a snapshot before deletion
+
+  vpc_security_group_ids = [aws_security_group.postgres_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.postgres_subnet_group.name
+  multi_az               = false  # Set to true for higher availability
+
+  tags = {
+    Name = "Neferdata"
   }
 }
