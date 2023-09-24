@@ -1,6 +1,8 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+# Copyright (c) Neferdata, Corp
+
 terraform {
   /*
   TODO: Add state management
