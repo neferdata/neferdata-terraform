@@ -192,10 +192,11 @@ resource "aws_security_group" "elasticache" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  vpc_id                         = module.vpc.vpc_id
 }
 
 resource "aws_elasticache_subnet_group" "redis_subnet_group" {
-  name       = "redis_subnet_group"
+  name       = "redissubnetgroup"
   subnet_ids = module.vpc.private_subnets
   description = "ElastiCache subnet group"
   tags = {
@@ -213,7 +214,6 @@ resource "aws_elasticache_cluster" "redis" {
   tags = {
     Name = "Neferdata"
   }
-
   subnet_group_name = aws_elasticache_subnet_group.redis_subnet_group.name
   security_group_ids = [aws_security_group.elasticache.id]
 }
