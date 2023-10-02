@@ -240,3 +240,29 @@ resource "aws_iam_policy" "external_dns" {
     ]
   })
 }
+
+# TODO: use oidc
+resource "aws_iam_role" "external_dns" {
+  name = "eks-external-dns"
+
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "eks.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "external_dns" {
+  policy_arn = aws_iam_policy.external_dns.arn
+  role       = aws_iam_role.external_dns.name
+}
+
+
+
