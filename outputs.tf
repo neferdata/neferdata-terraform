@@ -32,3 +32,8 @@ output "postgres_port" {
   description = "DB port"
   value       = aws_db_instance.postgres.port
 }
+
+output "current_account_id" {
+  description = "The current AWS account ID"
+  value       = data.aws_caller_identity.current.account_id
+}

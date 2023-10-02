@@ -7,6 +7,8 @@ provider "aws" {
   region = var.region
 }
 
+data "aws_caller_identity" "current" {}
+
 # Filter out local zones, which are not currently supported 
 # with managed node groups
 data "aws_availability_zones" "available" {
@@ -216,4 +218,25 @@ resource "aws_elasticache_cluster" "redis" {
   }
   subnet_group_name = aws_elasticache_subnet_group.redis_subnet_group.name
   security_group_ids = [aws_security_group.elasticache.id]
+}
+
+# ExternalDNS
+resource "aws_iam_policy" "external_dns" {
+  name        = "ExternalDNSRoute53"
+  description = "Permissions for External-DNS to manage Route53 records"
+
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets",
+          "route53:ListHostedZones"
+        ],
+        "Resource": "*"
+      }
+    ]
+  })
 }
