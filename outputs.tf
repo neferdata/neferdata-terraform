@@ -5,7 +5,7 @@
 
 output "cluster_endpoint" {
   description = "Endpoint for EKS control plane"
-  value       = module.eks.cluster_endpoint
+  value       = var.create_eks_cluster ? module.eks.cluster_endpoint : "EKS cluster not created"
 }
 
 output "cluster_security_group_id" {
@@ -20,17 +20,17 @@ output "region" {
 
 output "cluster_name" {
   description = "Kubernetes Cluster Name"
-  value       = module.eks.cluster_name
+  value       = var.create_eks_cluster ? module.eks.cluster_name : "EKS cluster not created"
 }
 
 output "postgres_endpoint" {
   description = "Endpoint for the PostgreSQL instance"
-  value       = aws_db_instance.postgres.endpoint
+  value       = var.create_rds_instance ? aws_db_instance.postgres[0].endpoint : "RDS instance not created"
 }
 
 output "postgres_port" {
   description = "DB port"
-  value       = aws_db_instance.postgres.port
+  value       = var.create_rds_instance ? aws_db_instance.postgres[0].port : "RDS instance not created"
 }
 
 output "current_account_id" {

@@ -118,7 +118,10 @@ module "irsa-ebs-csi" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
+# EKS 
+
 resource "aws_eks_addon" "ebs-csi" {
+  # count = var.create_eks_cluster ? 1 : 0
   cluster_name             = module.eks.cluster_name
   addon_name               = "aws-ebs-csi-driver"
   addon_version            = "v1.20.0-eksbuild.1"
@@ -155,7 +158,10 @@ resource "aws_security_group" "postgres_sg" {
   }
 }
 
+# Database
+
 resource "aws_db_instance" "postgres" {
+  count = var.create_rds_instance ? 1 : 0
   allocated_storage    = 20  # Adjust as needed
   storage_type         = "standard"
   engine               = "postgres"
@@ -207,6 +213,7 @@ resource "aws_elasticache_subnet_group" "redis_subnet_group" {
 }
 
 resource "aws_elasticache_cluster" "redis" {
+  count = var.create_redis_cluster ? 1 : 0
   cluster_id      = "neferdata-redis"
   engine          = "redis"
   node_type       = "cache.t2.micro"
@@ -261,8 +268,34 @@ resource "aws_iam_role" "external_dns" {
 
 resource "aws_iam_role_policy_attachment" "external_dns" {
   policy_arn = aws_iam_policy.external_dns.arn
-  role       = aws_iam_role.external_dns.name
+  # TODO: read from module
+  role       = "node-group-1-eks-node-group-20230922122919196500000002"
 }
 
+resource "aws_iam_role" "cert_manager_route53" {
+  name = "cert-manager-route53"
 
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/oidc.eks.${var.region}.amazonaws.com/id/06C9C3DADC2054A1780E2915A7D0A0CA"
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            "oidc.eks.${var.region}.amazonaws.com/id/06C9C3DADC2054A1780E2915A7D0A0CA:sub" : "system:serviceaccount:${var.k8s_namespace}:cert-manager-route53"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "cert_manager_route53_policy_attachment" {
+  role       = aws_iam_role.cert_manager_route53.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonRoute53FullAccess" # or your custom policy ARN
+}
 
