@@ -59,6 +59,7 @@ module "vpc" {
 }
 
 module "eks" {
+  count = var.create_eks_cluster ? 1 : 0  # Conditionally create the EKS cluster
   source  = "terraform-aws-modules/eks/aws"
   version = "19.15.3"
 
@@ -108,12 +109,13 @@ data "aws_iam_policy" "ebs_csi_policy" {
 }
 
 module "irsa-ebs-csi" {
+  count = var.create_eks_cluster ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "4.7.0"
 
   create_role                   = true
-  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
-  provider_url                  = module.eks.oidc_provider
+  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks[0].cluster_name}"
+  provider_url                  = module.eks[0].oidc_provider
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
@@ -121,11 +123,11 @@ module "irsa-ebs-csi" {
 # EKS 
 
 resource "aws_eks_addon" "ebs-csi" {
-  # count = var.create_eks_cluster ? 1 : 0
-  cluster_name             = module.eks.cluster_name
+  count = var.create_eks_cluster ? 1 : 0
+  cluster_name             = module.eks[0].cluster_name
   addon_name               = "aws-ebs-csi-driver"
   addon_version            = "v1.20.0-eksbuild.1"
-  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  service_account_role_arn = module.irsa-ebs-csi[0].iam_role_arn
   tags = {
     "eks_addon" = "ebs-csi"
     "terraform" = "true"

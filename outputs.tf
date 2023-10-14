@@ -10,7 +10,7 @@ output "cluster_endpoint" {
 
 output "cluster_security_group_id" {
   description = "Security group ids attached to the cluster control plane"
-  value       = module.eks.cluster_security_group_id
+  value       = var.create_eks_cluster ? module.eks[0].cluster_security_group_id : "EKS cluster not created"
 }
 
 output "region" {
