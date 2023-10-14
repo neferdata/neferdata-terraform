@@ -29,9 +29,9 @@ Before using this Terraform project, ensure you have the following prerequisites
 Follow these steps to get started with provisioning the Neferdata infrastructure using Terraform:
 
 1. Clone this repository to your local machine:
-
+```
 git clone https://github.com/your-username/neferdata-terraform.git
-
+```
 2. Change into the project directory:
 
 cd neferdata-terraform
