@@ -1,6 +1,7 @@
 # Terraform Infrastructure as Code for Neferdata
 
-![Neferdata Logo](assets/logo.png)
+<img src="assets/logo.png" alt="Neferdata Logo" width="200" />
+
 
 ## Table of Contents
 
